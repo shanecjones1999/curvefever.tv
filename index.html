@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Jackbox-style Game</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <h1>Game Room</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+    const ws = new WebSocket("ws://127.0.0.1:8000/ws");
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let playerId = null;
+    const players = {};
+    let lastPositions = {};
+
+    let movingLeft = false;
+    let movingRight = false;
+    let intervalId = null;
+
+    let lastDirection = "none";
+
+    document.addEventListener("keydown", (event) => {
+        if (event.key === "ArrowLeft" && !movingLeft && !movingRight) {
+            movingLeft = true;
+            sendDirection("left");
+            intervalId = setInterval(() => sendDirection("left"), 100);
+        } else if (event.key === "ArrowRight" && !movingRight && !movingLeft) {
+            movingRight = true;
+            sendDirection("right");
+            intervalId = setInterval(() => sendDirection("right"), 100);
+        }
+    });
+
+    document.addEventListener("keyup", (event) => {
+        if (event.key === "ArrowLeft") {
+            movingLeft = false;
+            clearInterval(intervalId);
+            if (!movingRight) {
+                sendDirection("none");
+            }
+        } else if (event.key === "ArrowRight") {
+            movingRight = false;
+            clearInterval(intervalId);
+            if (!movingLeft) {
+                sendDirection("none");
+            }
+        }
+    });
+
+    function sendDirection(direction) {
+        if (playerId) {
+            ws.send(JSON.stringify({
+                type: 'player_move',
+                playerId: playerId,
+                direction: direction
+            }));
+        }
+    }
+
+    function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        for (const playerId in players) {
+            const player = players[playerId],
+                lastPos = lastPositions[playerId];
+
+            if (lastPos) {
+                player.x = lastPos.x + (player.x - lastPos.x) * 0.1;
+                player.y = lastPos.y + (player.y - lastPos.y) * 0.1;
+            }
+
+            ctx.beginPath();
+            ctx.arc(player.x, player.y, 10, 0, Math.PI * 2);
+            ctx.fillStyle = "blue";
+            ctx.fill();
+            ctx.closePath();
+        }
+
+        requestAnimationFrame(render);
+    }
+
+    ws.onmessage = (event) => {
+        try {
+            const data = JSON.parse(event.data),
+                player = data.player;
+            if (data.type === 'player_move') {
+                players[player.playerId] = {
+                    x: player.x,
+                    y: player.y
+                }
+    
+                lastPositions[player.playerId] = {
+                    x: players[player.playerId].x,
+                    y: players[player.playerId].y
+                };
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+    ws.onopen = () => {
+        playerId = Date.now().toString();
+        requestAnimationFrame(render);
+    };
+</script>
+
+    
+</body>
+</html>
