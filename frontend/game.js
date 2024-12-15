@@ -9,7 +9,7 @@ if (playerName) {
 }
 
 const playerList = document.getElementById("playerList");
-const ws = new WebSocket("wss://curvefever-tv.onrender.com//ws");
+const ws = new WebSocket("wss://curvefever-tv.onrender.com/ws");
 
 let players = {};
 
