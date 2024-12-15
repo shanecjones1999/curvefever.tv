@@ -6,7 +6,7 @@ document.getElementById("nameForm").addEventListener("submit", (event) => {
     if (playerName) {
         localStorage.setItem("playerName", playerName);
 
-        window.location.href = "game.html";
+        window.location.href = "game";
     } else {
         alert("Please enter a valid name.");
     }
