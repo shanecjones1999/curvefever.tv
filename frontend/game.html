@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Lobby</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="lobby">
+        <h1>Game Lobby</h1>
+        <p>Welcome, <span id="playerNameDisplay"></span>!</p>
+        <h2>Players in the Lobby:</h2>
+        <ul id="playerList"></ul>
+        <button id="startGameBtn">Start Game</button>
+    </div>
+
+    <div id="game" style="display:none;">
+        <h2>Game</h2>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+    </div>
+
+    <script src="game.js"></script>
+    <script src="player.js"></script>
+</body>
+</html>
