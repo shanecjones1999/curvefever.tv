@@ -6,13 +6,10 @@ import math
 import asyncio
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-import os
 
 app = FastAPI()
 
 app.mount("/static", StaticFiles(directory="frontend", html=False), name="static")
-
-# Serve index.html at the root URL
 
 
 @app.get("/")
@@ -23,36 +20,6 @@ async def get_index():
 @app.get("/game")
 async def get_game():
     return FileResponse("frontend/game.html")
-
-# app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
-
-# Serve index.html at the root URL
-
-
-# @app.get("/")
-# async def get_index():
-#     # Serve the main HTML page
-#     with open("frontend/index.html") as f:
-#         return f.read()
-
-
-# @app.get("/game")
-# async def get_game():
-#     # Serve the main HTML page
-#     with open("frontend/game.html") as f:
-#         return f.read()
-
-
-# @app.get("/")
-# async def read_root():
-#     return FileResponse(os.path.join("frontend", "index.html"))
-
-# Optionally, serve game.html directly (if you have a route for it)
-
-
-# @app.get("/game")
-# async def read_game():
-#     return FileResponse(os.path.join("frontend", "game.html"))
 
 connected_players: dict[str, Player] = {}
 game: Game = None
@@ -129,13 +96,17 @@ async def websocket_endpoint(websocket: WebSocket):
         print(f"Connection error: {e}")
 
     finally:
-        player_id = str(id(websocket))
-
-        if player_id:
+        if player_id in connected_players:
             del connected_players[player_id]
+            print(f"Player {player_id} disconnected.")
 
-            for client in connected_players.values():
-                await client.websocket.send_text(json.dumps({
-                    "type": "update_lobby",
-                    "players": [player.name for player in connected_players.values()]
-                }))
+        for client in connected_players.values():
+            await client.websocket.send_text(json.dumps({
+                "type": "update_lobby",
+                "players": [player.name for player in connected_players.values()]
+            }))
+
+        if not connected_players:
+            if move_players_task and not move_players_task.done():
+                move_players_task.cancel()
+                game = None

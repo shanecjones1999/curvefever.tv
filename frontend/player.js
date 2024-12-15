@@ -11,6 +11,15 @@ class Player {
         this.hasTrail = true;
     }
 
+    updatePosition(x, y, hasTrail, addSegment) {
+        this.x = x;
+        this.y = y;
+        this.hasTrail = hasTrail;
+        if (addSegment) {
+            this.trail.addSegment();
+        }
+    }
+
     draw(ctx) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
